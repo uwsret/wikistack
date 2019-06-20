@@ -21,7 +21,7 @@ db.authenticate().then(() => {
 
 app.use("/wiki", wikiRouter);
 
-app.use("/user", userRouter);
+app.use("/users", userRouter);
 
 app.get("/", function(req, res) {
     // console.log("hello world");

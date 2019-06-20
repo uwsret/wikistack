@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {main, addPage, wikiPage} = require("../views/");
-const {Page} = require("../models")
+const {User,Page} = require("../models")
 
 
 
@@ -18,25 +18,34 @@ router.get("/:slug", async function(req, res) {
     const slug = req.params.slug;
 
     const data = await Page.findOne({where: {slug}});
-    res.send(wikiPage(data));
+    const author = await data.getAuthor();
+    res.send(wikiPage(data,author));
 
 })
 
 router.post("/", async function(req, res) {
 
     let obj = req.body;
+    try {
+    let author = await User.findOrCreate({
+        where:{
+            name: obj["author-name"],
+            email: obj.email
+        }
+    })
     const page = new Page({
         title: obj.title,
         content: obj.content,
         status: obj.status,
         // slug: obj.title.replace(/\s/g, "_")
     })
-    try {
         await page.save();
+        page.setAuthor(author[0])
         res.redirect(`/wiki/${page.slug}`);
     }
     catch(e) {
-        console.log(e);
+        console.log(e.message);
+        res.redirect('/wiki/add');
     }
     // res.send(req.body);
 })
